@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Home Shelter System - Simulator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            text-align: center;
+            margin: 0;
+            padding: 20px;
+        }
+        h1 {
+            color: #333;
+        }
+        .controls {
+            margin-bottom: 20px;
+            padding: 15px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            display: inline-block;
+        }
+        button {
+            padding: 10px 20px;
+            margin: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+            color: white;
+            font-weight: bold;
+            transition: background 0.3s;
+        }
+        .btn-start-1 { background-color: #e74c3c; }
+        .btn-stop-1 { background-color: #c0392b; }
+        .btn-start-2 { background-color: #2ecc71; }
+        .btn-stop-2 { background-color: #27ae60; }
+        button:hover { opacity: 0.8; }
+
+        /* Room Layout */
+        .room-container {
+            width: 800px;
+            height: 500px;
+            background-color: #e0f7fa;
+            border: 4px solid #555;
+            margin: 0 auto;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Earth Shake Animation */
+        @keyframes shake {
+            0% { transform: translate(1px, 1px) rotate(0deg); }
+            10% { transform: translate(-2px, -1px) rotate(-1deg); }
+            20% { transform: translate(-3px, 0px) rotate(1deg); }
+            30% { transform: translate(2px, 2px) rotate(0deg); }
+            40% { transform: translate(1px, -1px) rotate(1deg); }
+            50% { transform: translate(-1px, 2px) rotate(-1deg); }
+            60% { transform: translate(-2px, 1px) rotate(0deg); }
+            70% { transform: translate(2px, 1px) rotate(-1deg); }
+            80% { transform: translate(-1px, -1px) rotate(1deg); }
+            90% { transform: translate(1px, 2px) rotate(0deg); }
+            100% { transform: translate(1px, -2px) rotate(-1deg); }
+        }
+        .shaking { animation: shake 0.5s infinite; }
+
+        /* Floor */
+        .floor {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            height: 20px;
+            background-color: #8d6e63;
+        }
+
+        /* Ceiling Light */
+        .ceiling-light {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            width: 40px;
+            height: 60px;
+            background-color: #ffeb3b;
+            border-radius: 0 0 20px 20px;
+            transform-origin: top center;
+            transition: transform 1s;
+        }
+        .ceiling-light.fall { transform: rotate(70deg) translateY(300px); opacity: 0; }
+
+        /* Mirror */
+        .mirror {
+            position: absolute;
+            top: 100px;
+            right: 350px;
+            width: 50px;
+            height: 100px;
+            background-color: #b0bec5;
+            border: 3px solid #78909c;
+            transition: transform 1s, top 1s;
+        }
+        .mirror.fall { top: 380px; transform: rotate(90deg); }
+
+        /* Wardrobe */
+        .wardrobe {
+            position: absolute;
+            bottom: 20px;
+            right: 50px;
+            width: 120px;
+            height: 250px;
+            background-color: #795548;
+            transform-origin: bottom left;
+            transition: transform 1s;
+            z-index: 2;
+        }
+        .wardrobe.fall { transform: rotate(-90deg); }
+        
+        /* Wardrobe Legs (Smart Mode) */
+        .protective-legs {
+            position: absolute;
+            bottom: -10px;
+            left: -30px;
+            width: 180px;
+            height: 10px;
+            background-color: #d35400;
+            display: none; /* Hidden by default */
+        }
+        .protective-legs.active { display: block; }
+
+        /* Bed System */
+        .bed-system {
+            position: absolute;
+            bottom: 20px;
+            left: 80px;
+            width: 200px;
+            height: 120px;
+            transform-origin: bottom right;
+            transition: transform 1.5s;
+        }
+        .bed-system.tilt { transform: rotate(20deg); }
+        
+        .bed {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            height: 50px;
+            background-color: #3498db;
+            border-radius: 5px;
+            z-index: 1;
+        }
+
+        /* Protective Shield (Smart Mode) */
+        .shield {
+            position: absolute;
+            bottom: 50px;
+            left: 0;
+            width: 190px;
+            height: 100px;
+            border: 5px solid transparent;
+            border-top: 10px solid #2ecc71;
+            border-left: 5px solid #2ecc71;
+            border-right: 5px solid #2ecc71;
+            border-radius: 100px 100px 0 0;
+            transform: scaleY(0); /* Hidden flat by default */
+            transform-origin: bottom;
+            transition: transform 1s;
+            z-index: 3;
+        }
+        .shield.active { transform: scaleY(1); }
+
+        /* Person */
+        .person {
+            position: absolute;
+            bottom: 50px;
+            left: 60px;
+            width: 40px;
+            height: 70px;
+            background-color: #f1c40f;
+            border-radius: 20px;
+            transition: all 1.5s;
+            z-index: 2;
+        }
+        
+        /* Person states */
+        .person.hit {
+            background-color: #e74c3c; /* Turns red to indicate injury */
+            transform: rotate(90deg) translate(20px, 30px);
+        }
+        .person.safe-slide {
+            transform: translate(80px, -20px) rotate(90deg); /* Slides into shelter */
+        }
+
+        /* Shelter indicator (Smart Mode) */
+        .shelter-space {
+            position: absolute;
+            bottom: -30px;
+            left: 50px;
+            color: #2ecc71;
+            font-weight: bold;
+            font-size: 14px;
+            opacity: 0;
+            transition: opacity 1s;
+        }
+        .shelter-space.active { opacity: 1; }
+
+    </style>
+</head>
+<body>
+
+    <h1>Smart Home Shelter System Simulator</h1>
+    
+    <div class="controls">
+        <h3>Situation 1: Normal Furniture (Danger)</h3>
+        <button class="btn-start-1" onclick="startNormalQuake()">Start Earthquake</button>
+        <button class="btn-stop-1" onclick="resetRoom()">Stop & Reset</button>
+    </div>
+
+    <div class="controls">
+        <h3>Situation 2: Smart Furniture (Protected)</h3>
+        <button class="btn-start-2" onclick="startSmartQuake()">Start Earthquake (Smart Mode)</button>
+        <button class="btn-stop-2" onclick="resetRoom()">Stop & Reset</button>
+    </div>
+
+    <div class="room-container" id="room">
+        <div class="ceiling-light" id="light"></div>
+        <div class="mirror" id="mirror"></div>
+        
+        <div class="wardrobe" id="wardrobe">
+            <div class="protective-legs" id="wardrobe-legs"></div>
+        </div>
+
+        <div class="bed-system" id="bed-system">
+            <div class="shield" id="shield"></div>
+            <div class="person" id="person"></div>
+            <div class="bed"></div>
+            <div class="shelter-space" id="shelter-text">SAFE SHELTER ZONE</div>
+        </div>
+        
+        <div class="floor"></div>
+    </div>
+
+    <script>
+        // Get elements
+        const room = document.getElementById('room');
+        const light = document.getElementById('light');
+        const mirror = document.getElementById('mirror');
+        const wardrobe = document.getElementById('wardrobe');
+        const wardrobeLegs = document.getElementById('wardrobe-legs');
+        const bedSystem = document.getElementById('bed-system');
+        const shield = document.getElementById('shield');
+        const person = document.getElementById('person');
+        const shelterText = document.getElementById('shelter-text');
+
+        // Situation 1: Normal Earthquake
+        function startNormalQuake() {
+            resetRoom(); // Ensure room is clean before starting
+            room.classList.add('shaking'); // Start earth shaking
+
+            // After 1 second of shaking, furniture starts falling
+            setTimeout(() => {
+                light.classList.add('fall');
+                mirror.classList.add('fall');
+                wardrobe.classList.add('fall');
+                
+                // Person gets hit by the falling wardrobe/debris
+                setTimeout(() => {
+                    person.classList.add('hit');
+                }, 500); 
+            }, 1000);
+        }
+
+        // Situation 2: Smart Home Earthquake
+        function startSmartQuake() {
+            resetRoom(); // Ensure room is clean before starting
+            room.classList.add('shaking'); // Start earth shaking
+
+            // Micro:bit detects shake instantly! (0.5 seconds reaction)
+            setTimeout(() => {
+                // 1. Shield drops
+                shield.classList.add('active');
+                
+                // 2. Wardrobe legs extend (prevents falling)
+                wardrobeLegs.classList.add('active');
+
+                // 3. Bed tilts to 20 degrees
+                bedSystem.classList.add('tilt');
+
+                // 4. Person safely slides down into shelter
+                person.classList.add('safe-slide');
+                
+                // 5. Light up shelter zone
+                shelterText.classList.add('active');
+
+                // NOTE: Light and mirror might still fall, but person is safe!
+                setTimeout(() => {
+                    light.classList.add('fall');
+                    mirror.classList.add('fall');
+                }, 1000);
+
+            }, 500);
+        }
+
+        // Reset everything back to normal
+        function resetRoom() {
+            room.classList.remove('shaking');
+            light.classList.remove('fall');
+            mirror.classList.remove('fall');
+            wardrobe.classList.remove('fall');
+            wardrobeLegs.classList.remove('active');
+            bedSystem.classList.remove('tilt');
+            shield.classList.remove('active');
+            person.classList.remove('hit');
+            person.classList.remove('safe-slide');
+            shelterText.classList.remove('active');
+        }
+    </script>
+
+</body>
+</html>
