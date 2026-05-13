@@ -2,435 +2,55 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Smart Home Shelter System - LEGO Prototype Simulator</title>
+    <title>Smart Home Shelter System - Advanced Simulator</title>
     <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #2c3e50;
-            color: #ecf0f1;
-            margin: 0;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
+        :root {
+            --wall: #e5d3b3; 
+            --floor: #8d6e63;
+            --bed-color: #5c6bc0;
+            --wood-dark: #5d4037;
         }
-        h1 {
-            color: #f1c40f;
-            text-align: center;
-            margin-bottom: 20px;
-            font-size: 2.2rem;
-            letter-spacing: 1px;
-        }
-        .container {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 40px;
-            justify-content: center;
-            max-width: 1200px;
-        }
-        .scenario-box {
-            background: #34495e;
-            border: 2px solid #f1c40f;
-            border-radius: 8px;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.5);
-            padding: 20px;
-            width: 480px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-        h2 {
-            color: #ecf0f1;
-            font-size: 1.3rem;
-            margin-top: 0;
-        }
-        .controls {
-            margin-bottom: 20px;
-            display: flex;
-            gap: 10px;
-        }
-        button {
-            padding: 10px 20px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-weight: bold;
-            font-size: 1rem;
-            text-transform: uppercase;
-            transition: all 0.2s;
-        }
-        button:active { transform: translateY(2px); }
-        .start-btn { background-color: #e74c3c; color: white; border-bottom: 3px solid #c0392b; }
-        .start-btn:hover { background-color: #c0392b; }
-        .stop-btn { background-color: #7f8c8d; color: white; border-bottom: 3px solid #34495e; }
-
-        .scene {
-            width: 440px;
-            height: 400px; /* Slightly taller to accommodate wall items */
-            position: relative;
-            background: #ecf0f1;
-            background-image: linear-gradient(#bdc3c7 2px, transparent 2px), linear-gradient(90deg, #bdc3c7 2px, transparent 2px);
-            background-size: 40px 40px;
-            border: 4px solid #7f8c8d;
-            border-bottom: 20px solid #273746;
-            overflow: visible;
-        }
-
-        .lego-wall {
-            position: absolute;
-            left: 0;
-            top: 0;
-            width: 60px;
-            height: 100%;
-            background-color: #f1c40f;
-            background-image: radial-gradient(#d4ac0d 15%, transparent 16%), radial-gradient(#d4ac0d 15%, transparent 16%);
-            background-size: 10px 10px;
-            background-position: 0 0, 5px 5px;
-            border-right: 4px solid #d4ac0d;
-            z-index: 10;
-        }
-
-        .microbit {
-            position: absolute;
-            top: 20px;
-            left: 10px;
-            width: 40px;
-            height: 30px;
-            background-color: #111;
-            border-radius: 4px;
-            border-bottom: 4px solid #f39c12;
-            display: grid;
-            grid-template-columns: repeat(5, 1fr);
-            grid-template-rows: repeat(5, 1fr);
-            gap: 2px;
-            padding: 4px;
-            box-sizing: border-box;
-        }
-        .mb-led { background-color: #333; border-radius: 50%; }
-        .mb-led.on { background-color: #e74c3c; box-shadow: 0 0 4px #e74c3c; }
-
-        .item {
-            position: absolute;
-            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-        }
-
-        /* Original Prototype Items */
-        .bed-container {
-            bottom: 60px;
-            left: 100px;
-            width: 180px;
-            height: 100px;
-            z-index: 5;
-            perspective: 800px;
-        }
+        body { font-family: 'Segoe UI', sans-serif; background: #222; color: white; display: flex; flex-direction: column; align-items: center; margin: 0; padding: 20px; }
         
-        .bed-legs {
-            position: absolute;
-            bottom: 0;
-            left: 10px;
-            width: 160px;
-            height: 40px;
-            border-left: 4px solid #bdc3c7;
-            border-right: 4px solid #bdc3c7;
+        .room-stage {
+            width: 900px; height: 500px; background: var(--wall);
+            border: 12px solid var(--wood-dark); position: relative;
+            overflow: hidden; box-shadow: 0 0 50px rgba(0,0,0,0.5);
         }
 
-        .bed-mattress {
-            position: absolute;
-            bottom: 40px;
-            left: 0;
-            width: 180px;
-            height: 20px;
-            background-color: white;
-            background-image: radial-gradient(black 15%, transparent 16%), radial-gradient(black 15%, transparent 16%);
-            background-size: 14px 14px;
-            background-position: 0 0, 7px 7px;
-            border: 2px solid #ccc;
-            border-radius: 2px;
-            transform-origin: bottom right;
-            transition: transform 0.6s ease;
-            z-index: 6;
+        /* Earth Shake Physics */
+        .seismic-activity { animation: groundShake 0.15s infinite; }
+        @keyframes groundShake {
+            0% { transform: translate(2px, 1px); }
+            50% { transform: translate(-2px, -1px); }
+            100% { transform: translate(0, 0); }
         }
 
-        .doll {
-            bottom: 60px;
-            left: 120px;
-            width: 90px;
-            height: 25px;
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 90 25'%3E%3Crect x='25' y='5' width='60' height='15' fill='%23fdfefe' stroke='%23ccc' rx='5'/%3E%3Ccircle cx='15' cy='12.5' r='10' fill='%23f5b041'/%3E%3Cpath d='M15,2 Q5,2 5,12 Q5,22 15,22 Z' fill='%23873600'/%3E%3C/svg>");
-            background-repeat: no-repeat;
-            z-index: 7;
-            transition: all 0.6s ease;
-        }
+        /* Floor and Background elements */
+        .floor { position: absolute; bottom: 0; width: 100%; height: 40px; background: var(--floor); border-top: 4px solid #4e342e; }
 
-        .bed-shield {
-            position: absolute;
-            bottom: 60px;
-            left: 100px;
-            width: 180px;
-            height: 120px;
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 120'%3E%3Crect x='5' y='5' width='170' height='110' fill='none' stroke='%2334495e' stroke-width='8'/%3E%3Cline x1='90' y1='5' x2='90' y2='115' stroke='%2334495e' stroke-width='8'/%3E%3Cline x1='5' y1='60' x2='175' y2='60' stroke='%2334495e' stroke-width='8'/%3E%3Crect x='15' y='15' width='65' height='35' fill='rgba(255,255,255,0.7)'/%3E%3Crect x='100' y='15' width='65' height='35' fill='rgba(255,255,255,0.7)'/%3E%3Crect x='15' y='70' width='65' height='35' fill='rgba(255,255,255,0.7)'/%3E%3Crect x='100' y='70' width='65' height='35' fill='rgba(255,255,255,0.7)'/%3E%3C/svg>");
-            background-repeat: no-repeat;
-            transform: translateY(-80px) rotate(90deg);
-            transform-origin: bottom left;
-            opacity: 0;
-            z-index: 8;
-            transition: all 0.5s ease;
+        /* Character Model (Realistic Human) */
+        .character {
+            position: absolute; width: 40px; height: 80px;
+            transition: all 1s ease-in-out; z-index: 10;
         }
+        .head { width: 25px; height: 25px; background: #ffdbac; border-radius: 50%; margin: 0 auto; position: relative; }
+        .body { width: 30px; height: 40px; background: #34495e; border-radius: 5px; margin: -2px auto; }
+        .limbs { width: 100%; height: 10px; display: flex; justify-content: space-between; }
+        .leg { width: 10px; height: 20px; background: #2c3e50; }
 
+        /* Wardrobe with Smart Legs (Reference: IMG_2740) */
         .wardrobe {
-            bottom: 20px;
-            left: 320px;
-            width: 80px;
-            height: 110px;
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 80 110'%3E%3Crect x='0' y='0' width='80' height='100' fill='%23d4ac0d'/%3E%3Crect x='5' y='5' width='33' height='90' fill='%23fdfefe' stroke='%23bdc3c7'/%3E%3Crect x='42' y='5' width='33' height='90' fill='%23fdfefe' stroke='%23bdc3c7'/%3E%3Ccircle cx='30' cy='50' r='3' fill='%23e67e22'/%3E%3Ccircle cx='50' cy='50' r='3' fill='%23e67e22'/%3E%3Crect x='10' y='100' width='5' height='10' fill='%23333'/%3E%3Crect x='65' y='100' width='5' height='10' fill='%23333'/%3E%3C/svg>");
-            background-repeat: no-repeat;
-            transform-origin: bottom center;
-            z-index: 6;
+            position: absolute; bottom: 40px; right: 120px;
+            width: 110px; height: 240px; background: #a1887f;
+            border: 3px solid #6d4c41; transition: all 0.8s ease;
+            transform-origin: bottom center; z-index: 5;
         }
+        .wardrobe-doors { display: flex; height: 100%; padding: 5px; gap: 5px; }
+        .door { flex: 1; background: white; border: 1px solid #ccc; position: relative; }
+        .handle { position: absolute; right: 5px; top: 50%; width: 5px; height: 15px; background: gold; }
         
-        .wardrobe-arms {
-            position: absolute;
-            bottom: 40px;
-            width: 30px;
-            height: 10px;
-            background-color: #ecf0f1;
-            border: 2px solid #bdc3c7;
-            border-radius: 5px;
-            opacity: 0;
-            z-index: 5;
-            transition: all 0.4s ease;
-        }
-        .arm-left { left: 0px; transform-origin: center right; }
-        .arm-right { right: 0px; transform-origin: center left; }
-
-        /* --- New Wall Decor / Furniture based on screenshot region --- */
-        
-        /* Ceiling / Wall Light */
-        .wall-light {
-            top: 20px;
-            left: 200px;
-            width: 60px;
-            height: 40px;
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 60 40'%3E%3Crect x='25' y='0' width='10' height='20' fill='%237f8c8d'/%3E%3Cpath d='M10,20 L50,20 L60,40 L0,40 Z' fill='%23f39c12' opacity='0.8'/%3E%3C/svg>");
-            background-repeat: no-repeat;
-            transform-origin: top center;
-            z-index: 4;
-        }
-
-        /* Paintings / Wall Frames */
-        .painting-1 {
-            top: 40px;
-            left: 100px;
-            width: 50px;
-            height: 60px;
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 50 60'%3E%3Crect x='0' y='0' width='50' height='60' fill='%238e44ad' stroke='%2334495e' stroke-width='4'/%3E%3Ccircle cx='25' cy='30' r='15' fill='%23f1c40f'/%3E%3C/svg>");
-            background-repeat: no-repeat;
-            z-index: 4;
-        }
-
-        .painting-2 {
-            top: 30px;
-            left: 320px;
-            width: 80px;
-            height: 50px;
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 80 50'%3E%3Crect x='0' y='0' width='80' height='50' fill='%232ecc71' stroke='%2334495e' stroke-width='4'/%3E%3Cpolygon points='10,40 40,10 70,40' fill='%2327ae60'/%3E%3C/svg>");
-            background-repeat: no-repeat;
-            z-index: 4;
-        }
-        
-        /* Shelf */
-        .shelf {
-            top: 130px;
-            left: 280px;
-            width: 140px;
-            height: 10px;
-            background-color: #d35400; /* Wood color */
-            border: 2px solid #a04000;
-            z-index: 4;
-            transform-origin: left center;
-        }
-        
-        /* Items on shelf */
-        .books {
-            bottom: 12px;
-            left: 10px;
-            width: 40px;
-            height: 30px;
-            position: absolute;
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 30'%3E%3Crect x='0' y='5' width='10' height='25' fill='%232980b9'/%3E%3Crect x='11' y='0' width='12' height='30' fill='%23c0392b'/%3E%3Crect x='24' y='10' width='8' height='20' fill='%2327ae60'/%3E%3C/svg>");
-            background-repeat: no-repeat;
-        }
-        
-        .vase {
-            bottom: 12px;
-            left: 80px;
-            width: 25px;
-            height: 40px;
-            position: absolute;
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 25 40'%3E%3Cpath d='M5,40 L20,40 L25,20 L15,10 L15,0 L10,0 L10,10 L0,20 Z' fill='%238e44ad'/%3E%3C/svg>");
-            background-repeat: no-repeat;
-            transform-origin: bottom center;
-        }
-
-
-        /* Earthquake Animations */
-        @keyframes rumble {
-            0% { transform: translate(0, 0) rotate(0deg); }
-            25% { transform: translate(-8px, 2px) rotate(-1deg); }
-            50% { transform: translate(8px, -2px) rotate(1deg); }
-            75% { transform: translate(-5px, 3px) rotate(-0.5deg); }
-            100% { transform: translate(0, 0) rotate(0deg); }
-        }
-
-        /* --- Situation 1: Destruction (No System) --- */
-        .shake-1 { animation: rumble 0.2s infinite; }
-        .shake-1 .microbit .mb-led { background-color: #333; box-shadow: none; }
-        .shake-1 .wardrobe { transform: rotate(-75deg) translate(-20px, -20px); }
-        .shake-1 .doll { transform: translateY(-30px) rotate(15deg); filter: drop-shadow(0 0 8px #e74c3c); }
-        .shake-1 .bed-mattress { transform: translateY(-10px) rotate(-5deg); }
-        
-        /* New Items Falling in Scenario 1 */
-        .shake-1 .wall-light { transform: rotate(45deg); }
-        .shake-1 .painting-1 { transform: translateY(150px) rotate(-20deg); } /* Falls down */
-        .shake-1 .painting-2 { transform: translateY(120px) rotate(30deg); } /* Falls down */
-        .shake-1 .shelf { transform: rotate(15deg); } /* Shelf breaks/tilts */
-        .shake-1 .vase { transform: translateX(-40px) translateY(180px) rotate(-90deg); } /* Falls off shelf */
-        .shake-1 .books { transform: translateX(20px) translateY(160px) rotate(45deg); } /* Falls off shelf */
-
-        /* --- Situation 2: Smart Protection --- */
-        .shake-2 { animation: rumble 0.2s infinite; }
-        
-        .shake-2 .mb-led.alert { background-color: #e74c3c; box-shadow: 0 0 6px #e74c3c; }
-
-        .shake-2 .wardrobe-arms { opacity: 1; }
-        .shake-2 .wardrobe .arm-left { transform: translateX(-25px) rotate(-45deg); }
-        .shake-2 .wardrobe .arm-right { transform: translateX(25px) rotate(45deg); }
-        .shake-2 .wardrobe { transform: translateY(-5px); }
-
-        .shake-2 .bed-shield { 
-            opacity: 1; 
-            transform: translateY(0) rotate(0deg);
-        }
-        .shake-2 .bed-mattress {
-            transform: rotate(-25deg);
-        }
-        .shake-2 .doll {
-            transform: translate(30px, 35px) rotate(-25deg);
-            filter: drop-shadow(0 0 10px #2ecc71);
-        }
-        
-        /* New items still react to earthquake, but smart system protects main entities */
-        .shake-2 .wall-light { transform: rotate(15deg); } /* Swings slightly */
-        .shake-2 .painting-1 { transform: rotate(-5deg); } /* Rattles */
-        .shake-2 .painting-2 { transform: rotate(5deg); } /* Rattles */
-        .shake-2 .vase { transform: rotate(10deg); } /* Wobbles on shelf */
-
-    </style>
-</head>
-<body>
-
-    <h1>Smart Home Shelter System<br><span style="font-size: 1.2rem; color: #bdc3c7;">Prototype Simulator</span></h1>
-
-    <div class="container">
-        <!-- Situation 1 -->
-        <div class="scenario-box">
-            <h2>Situation 1: Without Smart System</h2>
-            <div class="controls">
-                <button class="start-btn" onclick="startEq(1)">Start Earthquake</button>
-                <button class="stop-btn" onclick="stopEq(1)">Stop</button>
-            </div>
-            <div class="scene" id="scene1">
-                <div class="lego-wall">
-                    <div class="microbit">
-                        <!-- 5x5 Grid off -->
-                        <div class="mb-led"></div><div class="mb-led"></div><div class="mb-led"></div><div class="mb-led"></div><div class="mb-led"></div>
-                        <div class="mb-led"></div><div class="mb-led"></div><div class="mb-led"></div><div class="mb-led"></div><div class="mb-led"></div>
-                        <div class="mb-led"></div><div class="mb-led"></div><div class="mb-led"></div><div class="mb-led"></div><div class="mb-led"></div>
-                        <div class="mb-led"></div><div class="mb-led"></div><div class="mb-led"></div><div class="mb-led"></div><div class="mb-led"></div>
-                        <div class="mb-led"></div><div class="mb-led"></div><div class="mb-led"></div><div class="mb-led"></div><div class="mb-led"></div>
-                    </div>
-                </div>
-                
-                <!-- Wall Decor -->
-                <div class="wall-light item"></div>
-                <div class="painting-1 item"></div>
-                <div class="painting-2 item"></div>
-                <div class="shelf item">
-                    <div class="books item"></div>
-                    <div class="vase item"></div>
-                </div>
-                
-                <div class="bed-container item">
-                    <div class="bed-legs"></div>
-                    <div class="bed-mattress"></div>
-                </div>
-                <div class="doll item"></div>
-                
-                <div class="item wardrobe"></div>
-            </div>
-        </div>
-
-        <!-- Situation 2 -->
-        <div class="scenario-box">
-            <h2>Situation 2: With Smart System</h2>
-            <div class="controls">
-                <button class="start-btn" onclick="startEq(2)">Start Earthquake</button>
-                <button class="stop-btn" onclick="stopEq(2)">Stop</button>
-            </div>
-            <div class="scene" id="scene2">
-                <div class="lego-wall">
-                    <div class="microbit" id="microbit-alert">
-                        <div class="mb-led"></div><div class="mb-led alert-tgt"></div><div class="mb-led alert-tgt"></div><div class="mb-led alert-tgt"></div><div class="mb-led"></div>
-                        <div class="mb-led alert-tgt"></div><div class="mb-led"></div><div class="mb-led"></div><div class="mb-led"></div><div class="mb-led alert-tgt"></div>
-                        <div class="mb-led alert-tgt"></div><div class="mb-led"></div><div class="mb-led alert-tgt"></div><div class="mb-led"></div><div class="mb-led alert-tgt"></div>
-                        <div class="mb-led alert-tgt"></div><div class="mb-led"></div><div class="mb-led"></div><div class="mb-led"></div><div class="mb-led alert-tgt"></div>
-                        <div class="mb-led"></div><div class="mb-led alert-tgt"></div><div class="mb-led alert-tgt"></div><div class="mb-led alert-tgt"></div><div class="mb-led"></div>
-                    </div>
-                </div>
-                
-                <!-- Wall Decor -->
-                <div class="wall-light item"></div>
-                <div class="painting-1 item"></div>
-                <div class="painting-2 item"></div>
-                <div class="shelf item">
-                    <div class="books item"></div>
-                    <div class="vase item"></div>
-                </div>
-                
-                <div class="bed-container item">
-                    <div class="bed-legs"></div>
-                    <div class="bed-mattress"></div>
-                </div>
-                <div class="bed-shield item"></div>
-                <div class="doll item"></div>
-                
-                <div class="item wardrobe">
-                    <div class="wardrobe-arms arm-left"></div>
-                    <div class="wardrobe-arms arm-right"></div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <script>
-        function startEq(scenario) {
-            document.getElementById('scene' + scenario).classList.add('shake-' + scenario);
-            
-            if(scenario === 2) {
-                const leds = document.querySelectorAll('#microbit-alert .alert-tgt');
-                leds.forEach(led => led.classList.add('alert'));
-            }
-        }
-
-        function stopEq(scenario) {
-            document.getElementById('scene' + scenario).classList.remove('shake-' + scenario);
-            
-            if(scenario === 2) {
-                const leds = document.querySelectorAll('#microbit-alert .alert-tgt');
-                leds.forEach(led => led.classList.remove('alert'));
-            }
-        }
-    </script>
-</body>
-</html>
+        .safety-legs {
+            position: absolute; bottom: 0; left: -40px; width: 190px; height: 12px;
+            background: #ecf0f1; border: 2px solid #bdc3c7;
+            display: none; box
