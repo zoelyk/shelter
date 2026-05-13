@@ -1,152 +1,188 @@
 <!DOCTYPE html>
-<html lang="zh-Hant">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>智慧避難家具系統模擬器</title>
+    <title>Smart Home Shelter System Simulator</title>
     <style>
         :root {
             --wall: #e5d3b3; 
             --floor: #8d6e63;
-            --bed-color: #5c6bc0;
             --wood-dark: #5d4037;
             --safe-green: #2ecc71;
             --danger-red: #e74c3c;
         }
-        body { font-family: 'Microsoft JhengHei', sans-serif; background: #222; color: white; margin: 0; padding: 10px; display: flex; flex-direction: column; align-items: center; }
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            background: #222; color: white; margin: 0; padding: 20px; 
+            display: flex; flex-direction: column; align-items: center; 
+        }
         
-        .main-container { display: flex; gap: 20px; width: 100%; max-width: 1200px; justify-content: center; }
+        h2 { margin-top: 0; margin-bottom: 20px; }
+
+        .main-container { display: flex; gap: 30px; width: 100%; max-width: 1200px; justify-content: center; }
         
         .simulation-box { flex: 1; text-align: center; }
 
         .room-stage {
             height: 450px; background: var(--wall);
             border: 8px solid var(--wood-dark); position: relative;
-            overflow: hidden; box-shadow: 0 0 30px rgba(0,0,0,0.5);
+            overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
         }
 
-        /* 地震晃動特效 */
+        /* Earthquake Shaking Animation */
         .seismic-activity { animation: groundShake 0.1s infinite; }
         @keyframes groundShake {
-            0% { transform: translate(1px, 1px); }
-            50% { transform: translate(-1px, -1px); }
+            0% { transform: translate(2px, 1px); }
+            50% { transform: translate(-2px, -1px); }
             100% { transform: translate(0, 0); }
         }
 
-        .floor { position: absolute; bottom: 0; width: 100%; height: 30px; background: var(--floor); border-top: 4px solid #4e342e; }
+        /* Ground/Floor is exactly 30px high */
+        .floor { position: absolute; bottom: 0; width: 100%; height: 30px; background: var(--floor); border-top: 4px solid #4e342e; z-index: 8; }
 
-        /* 人物模型 */
-        .character { position: absolute; width: 30px; height: 60px; transition: all 1s ease-in-out; z-index: 10; }
-        .head { width: 20px; height: 20px; background: #ffdbac; border-radius: 50%; margin: 0 auto; }
-        .body { width: 24px; height: 30px; background: #34495e; border-radius: 4px; margin: -2px auto; }
+        /* Sleeping Character */
+        .character { 
+            position: absolute; bottom: 100%; left: 20px; 
+            width: 60px; height: 25px; padding-bottom: 2px;
+            display: flex; align-items: flex-end; 
+            transition: all 1s ease-in-out; z-index: 10; 
+        }
+        .head { width: 22px; height: 22px; background: #ffdbac; border-radius: 50%; }
+        .body { width: 35px; height: 18px; background: #34495e; border-radius: 4px; margin-left: 2px; }
 
-        /* 衣櫃與旋轉腳 (參考 IMG_2740) */
+        /* Wardrobe Structure */
         .wardrobe {
             position: absolute; bottom: 30px; right: 40px;
-            width: 80px; height: 180px; background: #a1887f;
-            border: 3px solid #6d4c41; transition: all 0.8s ease;
-            transform-origin: bottom center; z-index: 5;
+            width: 90px; height: 180px; background: #a1887f;
+            border: 3px solid #6d4c41; transition: transform 0.8s ease-in;
+            transform-origin: bottom left; z-index: 5;
         }
-        .wardrobe-doors { display: flex; height: 100%; padding: 3px; gap: 3px; }
+        .wardrobe-doors { display: flex; height: 100%; padding: 4px; gap: 4px; box-sizing: border-box;}
         .door { flex: 1; background: white; border: 1px solid #ccc; }
         
-        /* 旋轉腳動作：原本離地，旋轉90度落地 */
+        /* Two Rotational Legs (Left and Right) */
         .rotational-leg {
-            position: absolute; top: 120px; right: -15px;
+            position: absolute; top: 120px; 
             width: 15px; height: 60px; background: #ecf0f1;
-            border: 2px solid #bdc3c7; border-radius: 5px;
-            transform-origin: top center;
+            border: 2px solid #bdc3c7; border-radius: 3px;
             transition: transform 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-            transform: rotate(0deg); /* 初始離地掛在側面 */
+            z-index: 4;
         }
-        .rotational-leg.deployed { transform: rotate(-90deg) translate(-30px, 15px); }
-
-        /* 床鋪系統 (參考 IMG_2733) */
-        .bed-container {
-            position: absolute; bottom: 30px; left: 40px;
-            width: 180px; height: 80px;
-            transition: transform 1s cubic-bezier(0.4, 0, 0.2, 1);
-            transform-origin: bottom right;
-        }
-        .mattress { width: 100%; height: 30px; background: white; border-radius: 5px; position: relative; z-index: 2; }
-        .bed-frame { width: 100%; height: 40px; background: #444; position: absolute; bottom: -5px; border-radius: 3px; }
+        /* Initially horizontal (off the ground) */
+        .left-leg { left: -15px; transform-origin: top center; transform: rotate(90deg); }
+        .right-leg { right: -15px; transform-origin: top center; transform: rotate(-90deg); }
         
+        /* When deployed, they swing 90 degrees to point straight down to the floor */
+        .left-leg.deployed { transform: rotate(0deg); }
+        .right-leg.deployed { transform: rotate(0deg); }
+
+        /* Bed System */
+        .bed-container {
+            position: absolute; bottom: 30px; left: 30px;
+            width: 200px; height: 50px;
+            transition: transform 1s cubic-bezier(0.4, 0, 0.2, 1);
+            transform-origin: bottom right; /* Tilts from the right side */
+            z-index: 3;
+        }
+        .bed-frame { width: 100%; height: 30px; background: #444; position: absolute; bottom: 0; border-radius: 4px; }
+        .mattress { width: 100%; height: 20px; background: white; position: absolute; bottom: 30px; border-radius: 4px; z-index: 2; }
+        
+        /* Arched Shield */
         .arched-shield {
-            position: absolute; top: -70px; left: 0; width: 100%; height: 90px;
-            background: white; border: 3px solid #ff99cc; border-radius: 100px 100px 0 0;
+            position: absolute; top: -80px; left: 0; width: 100%; height: 110px;
+            background: white; border: 4px solid #ff99cc; border-radius: 120px 120px 0 0;
             transform: scaleY(0); transform-origin: bottom; transition: 0.6s;
             background-image: radial-gradient(#ff99cc 15%, transparent 16%);
-            background-size: 20px 20px; opacity: 0.9; z-index: 15;
+            background-size: 20px 20px; opacity: 0.95; z-index: 15;
+            box-sizing: border-box;
         }
 
-        /* 安全區 */
+        /* Safe Zone (Directly on the ground, bottom: 30px) */
         .safety-zone {
-            position: absolute; bottom: -40px; left: 0; width: 100%; height: 40px;
-            background: rgba(46, 204, 113, 0.4); border: 2px solid var(--safe-green);
-            opacity: 0; transition: 0.8s; display: flex; align-items: center; justify-content: center; font-size: 12px; color: var(--safe-green);
+            position: absolute; bottom: 30px; right: 140px; 
+            width: 130px; height: 40px;
+            background: rgba(46, 204, 113, 0.3); border: 2px dashed var(--safe-green);
+            opacity: 0; transition: 0.8s; display: flex; align-items: center; justify-content: center; 
+            font-size: 14px; color: var(--safe-green); font-weight: bold; z-index: 1;
         }
 
-        /* 動作類別 */
-        .fall-danger { transform: rotate(-85deg); }
-        .tilt-20 { transform: rotate(20deg); }
-        .person-slide { transform: translate(100px, 60px) rotate(90deg); }
-        .person-crushed { transform: translate(-50px, 100px) rotate(110deg); filter: grayscale(1); }
-        .active { transform: scaleY(1) !important; }
+        /* Animation Classes */
+        .fall-danger { transform: rotate(-85deg); } /* Wardrobe falls on bed */
+        .tilt-20 { transform: rotate(20deg); }      /* Bed tilts 20 degrees */
+        .shield-active { transform: scaleY(1); }    /* Shield opens */
+        
+        /* Person slides right and down off the mattress onto the ground */
+        .person-slide { transform: translate(140px, 30px) rotate(10deg); }
+        
+        /* Person gets crushed by wardrobe */
+        .person-crushed { transform: translate(60px, 10px) rotate(-15deg); filter: grayscale(1); opacity: 0.7;}
 
-        .controls { margin-top: 15px; }
-        .btn { padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; margin: 5px; }
+        /* Buttons */
+        .controls { margin-top: 20px; }
+        .btn { padding: 12px 24px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 16px; margin: 5px; transition: 0.3s;}
+        .btn:hover { opacity: 0.8; }
         .danger-btn { background: var(--danger-red); color: white; }
         .safe-btn { background: var(--safe-green); color: white; }
-        .reset-btn { background: #7f8c8d; color: white; }
+        .reset-btn { background: #7f8c8d; color: white; margin-top: 20px; }
     </style>
 </head>
 <body>
 
-    <h2>智慧避難家具系統模擬器 (Smart Home Shelter System)</h2>
+    <h2>Smart Home Shelter System Simulator</h2>
 
     <div class="main-container">
         <div class="simulation-box">
-            <h3>情況 1：無智慧系統</h3>
+            <h3>Situation 1: Without Smart System</h3>
             <div class="room-stage" id="stage1">
                 <div class="wardrobe" id="ward1">
                     <div class="wardrobe-doors"><div class="door"></div><div class="door"></div></div>
                 </div>
                 <div class="bed-container" id="bed1">
-                    <div class="mattress"><div class="character" id="human1"><div class="head"></div><div class="body"></div></div></div>
+                    <div class="mattress">
+                        <div class="character" id="human1"><div class="head"></div><div class="body"></div></div>
+                    </div>
                     <div class="bed-frame"></div>
                 </div>
                 <div class="floor"></div>
             </div>
             <div class="controls">
-                <button class="btn danger-btn" onclick="startSituation1()">模擬地震</button>
+                <button class="btn danger-btn" onclick="startSituation1()">Simulate Earthquake</button>
             </div>
         </div>
 
         <div class="simulation-box">
-            <h3>情況 2：智慧避難系統</h3>
+            <h3>Situation 2: With Smart System</h3>
             <div class="room-stage" id="stage2">
                 <div class="wardrobe" id="ward2">
                     <div class="wardrobe-doors"><div class="door"></div><div class="door"></div></div>
-                    <div class="rotational-leg" id="leg2"></div>
+                    <div class="rotational-leg left-leg" id="leg2-left"></div>
+                    <div class="rotational-leg right-leg" id="leg2-right"></div>
                 </div>
+                
                 <div class="bed-container" id="bed2">
                     <div class="arched-shield" id="shield2"></div>
-                    <div class="mattress"><div class="character" id="human2"><div class="head"></div><div class="body"></div></div></div>
+                    <div class="mattress">
+                        <div class="character" id="human2"><div class="head"></div><div class="body"></div></div>
+                    </div>
                     <div class="bed-frame"></div>
-                    <div class="safety-zone" id="zone2">安全避難區</div>
                 </div>
+                
+                <div class="safety-zone" id="zone2">SAFE ZONE</div>
                 <div class="floor"></div>
             </div>
             <div class="controls">
-                <button class="btn safe-btn" onclick="startSituation2()">啟動智慧防禦</button>
+                <button class="btn safe-btn" onclick="startSituation2()">Activate Smart System</button>
             </div>
         </div>
     </div>
 
-    <button class="btn reset-btn" onclick="resetAll()">全部重置</button>
+    <button class="btn reset-btn" onclick="resetAll()">Reset All Settings</button>
 
     <script>
         function startSituation1() {
             document.getElementById('stage1').classList.add('seismic-activity');
+            
+            // Furniture falls after a delay
             setTimeout(() => {
                 document.getElementById('ward1').classList.add('fall-danger');
                 document.getElementById('human1').classList.add('person-crushed');
@@ -155,29 +191,33 @@
 
         function startSituation2() {
             document.getElementById('stage2').classList.add('seismic-activity');
-            // 系統偵測並反應
+            
+            // Micro:bit detects shake and reacts instantly
             setTimeout(() => {
-                document.getElementById('shield2').classList.add('active'); // 防護罩開啟
-                document.getElementById('leg2').classList.add('deployed'); // 櫃腳旋轉 90 度支撐地面
-                document.getElementById('bed2').classList.add('tilt-20');   // 床鋪傾斜 20 度
+                document.getElementById('shield2').classList.add('shield-active'); // Shield deploys
+                document.getElementById('leg2-left').classList.add('deployed');   // Left leg drops to floor
+                document.getElementById('leg2-right').classList.add('deployed');  // Right leg drops to floor
+                document.getElementById('bed2').classList.add('tilt-20');         // Bed tilts
                 
+                // Person slides into safe zone on the ground
                 setTimeout(() => {
-                    document.getElementById('human2').classList.add('person-slide'); // 人物滑入
+                    document.getElementById('human2').classList.add('person-slide'); 
                     document.getElementById('zone2').style.opacity = "1";
                 }, 600);
             }, 300);
         }
 
         function resetAll() {
-            // 重置左側
+            // Reset Situation 1
             document.getElementById('stage1').classList.remove('seismic-activity');
             document.getElementById('ward1').classList.remove('fall-danger');
             document.getElementById('human1').className = 'character';
 
-            // 重置右側
+            // Reset Situation 2
             document.getElementById('stage2').classList.remove('seismic-activity');
-            document.getElementById('shield2').classList.remove('active');
-            document.getElementById('leg2').classList.remove('deployed');
+            document.getElementById('shield2').classList.remove('shield-active');
+            document.getElementById('leg2-left').classList.remove('deployed');
+            document.getElementById('leg2-right').classList.remove('deployed');
             document.getElementById('bed2').classList.remove('tilt-20');
             document.getElementById('human2').className = 'character';
             document.getElementById('zone2').style.opacity = "0";
