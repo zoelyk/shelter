@@ -17,7 +17,16 @@
             display: flex; flex-direction: column; align-items: center; 
         }
         
-        h2 { margin-top: 0; margin-bottom: 20px; text-align: center; }
+        /* School and Title Styling */
+        .header-section { text-align: center; margin-bottom: 30px; }
+        .school-name { 
+            font-size: 1.2em; 
+            color: #bdc3c7; 
+            letter-spacing: 1.5px; 
+            text-transform: uppercase;
+            margin-bottom: 5px;
+        }
+        h2 { margin: 0; font-size: 2.2em; color: white; }
 
         .main-container { display: flex; gap: 30px; width: 100%; max-width: 1200px; justify-content: center; }
         
@@ -81,7 +90,7 @@
             transition: transform 1s cubic-bezier(0.4, 0, 0.2, 1);
             transform-origin: bottom right; 
             z-index: 3;
-            perspective: 800px; /* Enables 3D flipping for the shield */
+            perspective: 800px;
             transform-style: preserve-3d;
         }
         .bed-frame { width: 100%; height: 30px; background: #444; position: absolute; bottom: 0; border-radius: 4px; z-index: 2; }
@@ -94,16 +103,14 @@
             background-image: radial-gradient(#ff99cc 15%, transparent 16%);
             background-size: 20px 20px; opacity: 0.95; z-index: 15;
             box-sizing: border-box;
-            
-            /* 3D Rotation mechanics */
             transform-origin: bottom center; 
-            transform: rotateX(-90deg); /* Folded flat against the back of the bed */
+            transform: rotateX(-90deg); 
             transition: transform 0.7s ease-out;
         }
 
-        /* Safe Zone (Moved next to the bed) */
+        /* Safe Zone */
         .safety-zone {
-            position: absolute; bottom: 30px; left: 240px; /* Placed immediately right of the 200px bed */
+            position: absolute; bottom: 30px; left: 240px; 
             width: 110px; height: 40px;
             background: rgba(46, 204, 113, 0.3); border: 2px dashed var(--safe-green);
             opacity: 0; transition: 0.8s; display: flex; align-items: center; justify-content: center; 
@@ -113,13 +120,8 @@
         /* Animation Classes */
         .fall-danger { transform: rotate(-85deg); } 
         .tilt-20 { transform: rotate(20deg); }      
-        
-        /* Shield swings up and forward to cover bed */
         .shield-active { transform: rotateX(0deg); }    
-        
-        /* Person slides right off the tilted mattress and drops into the Safe Zone */
         .person-slide { transform: translate(175px, 35px) rotate(10deg); }
-        
         .person-crushed { transform: translate(60px, 10px) rotate(-15deg); filter: grayscale(1); opacity: 0.7;}
 
         /* Controls */
@@ -133,7 +135,10 @@
 </head>
 <body>
 
-    <h2>Smart Home Shelter System Simulator</h2>
+    <div class="header-section">
+        <div class="school-name">Hon Wah College (Primary Section)</div>
+        <h2>Smart Home Shelter System Simulator</h2>
+    </div>
 
     <div class="main-container">
         <div class="simulation-box">
@@ -186,7 +191,6 @@
     <script>
         function startSituation1() {
             document.getElementById('stage1').classList.add('seismic-activity');
-            
             setTimeout(() => {
                 document.getElementById('ward1').classList.add('fall-danger');
                 document.getElementById('human1').classList.add('person-crushed');
@@ -195,14 +199,11 @@
 
         function startSituation2() {
             document.getElementById('stage2').classList.add('seismic-activity');
-            
             setTimeout(() => {
                 document.getElementById('shield2').classList.add('shield-active'); 
                 document.getElementById('leg2-left').classList.add('deployed');   
                 document.getElementById('leg2-right').classList.add('deployed');  
                 document.getElementById('bed2').classList.add('tilt-20');         
-                
-                // Person perfectly slides off the bed into the safe zone
                 setTimeout(() => {
                     document.getElementById('human2').classList.add('person-slide'); 
                     document.getElementById('zone2').style.opacity = "1";
@@ -211,12 +212,9 @@
         }
 
         function resetAll() {
-            // Reset Situation 1
             document.getElementById('stage1').classList.remove('seismic-activity');
             document.getElementById('ward1').classList.remove('fall-danger');
             document.getElementById('human1').className = 'character';
-
-            // Reset Situation 2
             document.getElementById('stage2').classList.remove('seismic-activity');
             document.getElementById('shield2').classList.remove('shield-active');
             document.getElementById('leg2-left').classList.remove('deployed');
