@@ -17,7 +17,7 @@
             display: flex; flex-direction: column; align-items: center; 
         }
         
-        h2 { margin-top: 0; margin-bottom: 20px; }
+        h2 { margin-top: 0; margin-bottom: 20px; text-align: center; }
 
         .main-container { display: flex; gap: 30px; width: 100%; max-width: 1200px; justify-content: center; }
         
@@ -32,12 +32,12 @@
         /* Earthquake Shaking Animation */
         .seismic-activity { animation: groundShake 0.1s infinite; }
         @keyframes groundShake {
-            0% { transform: translate(2px, 1px); }
-            50% { transform: translate(-2px, -1px); }
+            0% { transform: translate(3px, 1px); }
+            50% { transform: translate(-3px, -1px); }
             100% { transform: translate(0, 0); }
         }
 
-        /* Ground/Floor is exactly 30px high */
+        /* Floor */
         .floor { position: absolute; bottom: 0; width: 100%; height: 30px; background: var(--floor); border-top: 4px solid #4e342e; z-index: 8; }
 
         /* Sleeping Character */
@@ -68,11 +68,9 @@
             transition: transform 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
             z-index: 4;
         }
-        /* Initially horizontal (off the ground) */
         .left-leg { left: -15px; transform-origin: top center; transform: rotate(90deg); }
         .right-leg { right: -15px; transform-origin: top center; transform: rotate(-90deg); }
         
-        /* When deployed, they swing 90 degrees to point straight down to the floor */
         .left-leg.deployed { transform: rotate(0deg); }
         .right-leg.deployed { transform: rotate(0deg); }
 
@@ -81,46 +79,53 @@
             position: absolute; bottom: 30px; left: 30px;
             width: 200px; height: 50px;
             transition: transform 1s cubic-bezier(0.4, 0, 0.2, 1);
-            transform-origin: bottom right; /* Tilts from the right side */
+            transform-origin: bottom right; 
             z-index: 3;
+            perspective: 800px; /* Enables 3D flipping for the shield */
+            transform-style: preserve-3d;
         }
-        .bed-frame { width: 100%; height: 30px; background: #444; position: absolute; bottom: 0; border-radius: 4px; }
+        .bed-frame { width: 100%; height: 30px; background: #444; position: absolute; bottom: 0; border-radius: 4px; z-index: 2; }
         .mattress { width: 100%; height: 20px; background: white; position: absolute; bottom: 30px; border-radius: 4px; z-index: 2; }
         
-        /* Arched Shield */
+        /* Arched Shield (Attached to the back, flips forward) */
         .arched-shield {
             position: absolute; top: -80px; left: 0; width: 100%; height: 110px;
             background: white; border: 4px solid #ff99cc; border-radius: 120px 120px 0 0;
-            transform: scaleY(0); transform-origin: bottom; transition: 0.6s;
             background-image: radial-gradient(#ff99cc 15%, transparent 16%);
             background-size: 20px 20px; opacity: 0.95; z-index: 15;
             box-sizing: border-box;
+            
+            /* 3D Rotation mechanics */
+            transform-origin: bottom center; 
+            transform: rotateX(-90deg); /* Folded flat against the back of the bed */
+            transition: transform 0.7s ease-out;
         }
 
-        /* Safe Zone (Directly on the ground, bottom: 30px) */
+        /* Safe Zone (Moved next to the bed) */
         .safety-zone {
-            position: absolute; bottom: 30px; right: 140px; 
-            width: 130px; height: 40px;
+            position: absolute; bottom: 30px; left: 240px; /* Placed immediately right of the 200px bed */
+            width: 110px; height: 40px;
             background: rgba(46, 204, 113, 0.3); border: 2px dashed var(--safe-green);
             opacity: 0; transition: 0.8s; display: flex; align-items: center; justify-content: center; 
             font-size: 14px; color: var(--safe-green); font-weight: bold; z-index: 1;
         }
 
         /* Animation Classes */
-        .fall-danger { transform: rotate(-85deg); } /* Wardrobe falls on bed */
-        .tilt-20 { transform: rotate(20deg); }      /* Bed tilts 20 degrees */
-        .shield-active { transform: scaleY(1); }    /* Shield opens */
+        .fall-danger { transform: rotate(-85deg); } 
+        .tilt-20 { transform: rotate(20deg); }      
         
-        /* Person slides right and down off the mattress onto the ground */
-        .person-slide { transform: translate(140px, 30px) rotate(10deg); }
+        /* Shield swings up and forward to cover bed */
+        .shield-active { transform: rotateX(0deg); }    
         
-        /* Person gets crushed by wardrobe */
+        /* Person slides right off the tilted mattress and drops into the Safe Zone */
+        .person-slide { transform: translate(175px, 35px) rotate(10deg); }
+        
         .person-crushed { transform: translate(60px, 10px) rotate(-15deg); filter: grayscale(1); opacity: 0.7;}
 
-        /* Buttons */
+        /* Controls */
         .controls { margin-top: 20px; }
         .btn { padding: 12px 24px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 16px; margin: 5px; transition: 0.3s;}
-        .btn:hover { opacity: 0.8; }
+        .btn:hover { opacity: 0.8; box-shadow: 0 0 10px rgba(255,255,255,0.2); }
         .danger-btn { background: var(--danger-red); color: white; }
         .safe-btn { background: var(--safe-green); color: white; }
         .reset-btn { background: #7f8c8d; color: white; margin-top: 20px; }
@@ -176,13 +181,12 @@
         </div>
     </div>
 
-    <button class="btn reset-btn" onclick="resetAll()">Reset All Settings</button>
+    <button class="btn reset-btn" onclick="resetAll()">Reset Simulation</button>
 
     <script>
         function startSituation1() {
             document.getElementById('stage1').classList.add('seismic-activity');
             
-            // Furniture falls after a delay
             setTimeout(() => {
                 document.getElementById('ward1').classList.add('fall-danger');
                 document.getElementById('human1').classList.add('person-crushed');
@@ -192,14 +196,13 @@
         function startSituation2() {
             document.getElementById('stage2').classList.add('seismic-activity');
             
-            // Micro:bit detects shake and reacts instantly
             setTimeout(() => {
-                document.getElementById('shield2').classList.add('shield-active'); // Shield deploys
-                document.getElementById('leg2-left').classList.add('deployed');   // Left leg drops to floor
-                document.getElementById('leg2-right').classList.add('deployed');  // Right leg drops to floor
-                document.getElementById('bed2').classList.add('tilt-20');         // Bed tilts
+                document.getElementById('shield2').classList.add('shield-active'); 
+                document.getElementById('leg2-left').classList.add('deployed');   
+                document.getElementById('leg2-right').classList.add('deployed');  
+                document.getElementById('bed2').classList.add('tilt-20');         
                 
-                // Person slides into safe zone on the ground
+                // Person perfectly slides off the bed into the safe zone
                 setTimeout(() => {
                     document.getElementById('human2').classList.add('person-slide'); 
                     document.getElementById('zone2').style.opacity = "1";
